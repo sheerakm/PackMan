@@ -88,34 +88,50 @@ def depthFirstSearch(problem):
     """
     "*** YOUR CODE HERE ***"
     fringe = util.Stack()
-    fringe.push(problem.getStartState())
-    actions = []
+    fringe.push((problem.getStartState(), [], 0))
+    visited = []
     while not fringe.isEmpty():
         curr = fringe.pop()
-        if problem.isGoalState(curr):
-            return actions
-        for successor in problem.getSuccessors(curr):
-            fringe.push(successor[0])
-            actions.append(successor[1])
+        if problem.isGoalState(curr[0]):
+            return curr[1]
+        if curr[0] not in visited:
+            visited.append(curr[0])
+            for successor in problem.getSuccessors(curr[0]):
+                fringe.push((successor[0], curr[1] + [successor[1]], curr[2] + successor[2]))
+
 
     util.raiseNotDefined()
-
-def depthFirstSearchHelper(successors, actions, problem):
-    for s in successors:
-        actions.append(s[1])
-        if problem.isGoalState(s[0]):
-            return actions
-        else:
-            depthFirstSearchHelper(problem.getSuccessors(s[0]), actions, problem)
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
+    fringe = util.Queue()
+    fringe.push((problem.getStartState(), [], 0))
+    visited = []
+    while not fringe.isEmpty():
+        curr = fringe.pop()
+        if problem.isGoalState(curr[0]):
+            return curr[1]
+        if curr[0] not in visited:
+            visited.append(curr[0])
+            for successor in problem.getSuccessors(curr[0]):
+                fringe.push((successor[0], curr[1] + [successor[1]], curr[2] + successor[2]))
     util.raiseNotDefined()
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
+    fringe = util.PriorityQueue()
+    fringe.push((problem.getStartState(), [], 0), 0)
+    visited = []
+    while not fringe.isEmpty():
+        curr = fringe.pop()
+        if problem.isGoalState(curr[0]):
+            return curr[1]
+        if curr[0] not in visited:
+            visited.append(curr[0])
+            for successor in problem.getSuccessors(curr[0]):
+                fringe.push((successor[0], curr[1] + [successor[1]], curr[2] + successor[2]))
     util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
