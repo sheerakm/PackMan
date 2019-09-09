@@ -87,12 +87,16 @@ def depthFirstSearch(problem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    successors = problem.getSuccessors(problem.getStartState())
+    fringe = util.Stack()
+    fringe.push(problem.getStartState())
     actions = []
-
-    actions = depthFirstSearchHelper(successors, actions, problem)
-
-
+    while not fringe.isEmpty():
+        curr = fringe.pop()
+        if problem.isGoalState(curr):
+            return actions
+        for successor in problem.getSuccessors(curr):
+            fringe.push(successor[0])
+            actions.append(successor[1])
 
     util.raiseNotDefined()
 
