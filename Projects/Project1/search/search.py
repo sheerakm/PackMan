@@ -146,15 +146,16 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     "*** YOUR CODE HERE ***"
     fringe = util.PriorityQueue()
     fringe.push((problem.getStartState(), [], 0), 0)
-    visited = []
+    closed = []
     while not fringe.isEmpty():
         curr = fringe.pop()
         if problem.isGoalState(curr[0]):
             return curr[1]
-        if curr[0] not in visited:
-            visited.append(curr[0])
+        if curr[0] not in closed:
+            closed.append(curr[0])
             for successor in problem.getSuccessors(curr[0]):
-                fringe.push((successor[0], curr[1] + [successor[1]], curr[2] + successor[2]), curr[2] + successor[2])
+                fringe.push((successor[0], curr[1] + [successor[1]], curr[2] + successor[2]), curr[2] + successor[2]
+                            + heuristic(successor[0], problem))
     util.raiseNotDefined()
 
 
