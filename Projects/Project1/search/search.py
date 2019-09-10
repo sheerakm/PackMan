@@ -89,13 +89,13 @@ def depthFirstSearch(problem):
     "*** YOUR CODE HERE ***"
     fringe = util.Stack()
     fringe.push((problem.getStartState(), [], 0))
-    visited = []
+    closed = []
     while not fringe.isEmpty():
         curr = fringe.pop()
         if problem.isGoalState(curr[0]):
             return curr[1]
-        if curr[0] not in visited:
-            visited.append(curr[0])
+        if curr[0] not in closed:
+            closed.append(curr[0])
             for successor in problem.getSuccessors(curr[0]):
                 fringe.push((successor[0], curr[1] + [successor[1]], curr[2] + successor[2]))
 
@@ -123,13 +123,13 @@ def uniformCostSearch(problem):
     "*** YOUR CODE HERE ***"
     fringe = util.PriorityQueue()
     fringe.push((problem.getStartState(), [], 0), 0)
-    visited = []
+    closed = []
     while not fringe.isEmpty():
         curr = fringe.pop()
         if problem.isGoalState(curr[0]):
             return curr[1]
-        if curr[0] not in visited:
-            visited.append(curr[0])
+        if curr[0] not in closed:
+            closed.append(curr[0])
             for successor in problem.getSuccessors(curr[0]):
                 fringe.push((successor[0], curr[1] + [successor[1]], curr[2] + successor[2]), curr[2] + successor[2])
     util.raiseNotDefined()
@@ -144,6 +144,17 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
+    fringe = util.PriorityQueue()
+    fringe.push((problem.getStartState(), [], 0), 0)
+    visited = []
+    while not fringe.isEmpty():
+        curr = fringe.pop()
+        if problem.isGoalState(curr[0]):
+            return curr[1]
+        if curr[0] not in visited:
+            visited.append(curr[0])
+            for successor in problem.getSuccessors(curr[0]):
+                fringe.push((successor[0], curr[1] + [successor[1]], curr[2] + successor[2]), curr[2] + successor[2])
     util.raiseNotDefined()
 
 
