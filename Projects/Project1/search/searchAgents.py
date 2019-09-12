@@ -288,6 +288,8 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+        self.visited = {(1,1): False, (1,top): False, (right, 1): False, (right, top): False}
+
 
     def getStartState(self):
         """
@@ -295,6 +297,8 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
+        return self.startingPosition, self.corners
+
         util.raiseNotDefined()
 
     def isGoalState(self, state):
@@ -302,6 +306,9 @@ class CornersProblem(search.SearchProblem):
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
+        position, corners = state
+        return position in corners and len(corners) == 1;
+
         util.raiseNotDefined()
 
     def getSuccessors(self, state):
@@ -325,6 +332,16 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
+            position, corners = state
+            x, y = position
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            hitsWall = self.walls[nextx][nexty]
+            if not hitsWall:
+                if position in corners:
+                    corners = [i for i in corners if i != position]
+                nextState = (nextx, nexty), corners
+                successors.append((nextState, action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -360,7 +377,16 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    list = []
+    position, corners = state
+    x, y = position
+    for corner in corners:
+        c1, c2 = corner
+        d = abs(c1 - x) + abs(c2 - y)
+        list.append(d)
+    return min(list)
+
+    #return 0 # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
