@@ -306,7 +306,7 @@ class CornersProblem(search.SearchProblem):
         """
         "*** YOUR CODE HERE ***"
         position, corners = state
-        return position in corners and len(corners) == 1;
+        return position in corners and len(corners) == 1
         util.raiseNotDefined()
 
     def getSuccessors(self, state):
@@ -476,7 +476,7 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     list = foodGrid.asList()
-    output = [abs(position[0] - i[0]) + abs(position[1] - i[1]) for i in list]
+    output = [mazeDistance(position, i, state) for i in list]
     return max(output)
 
 class ClosestDotSearchAgent(SearchAgent):
