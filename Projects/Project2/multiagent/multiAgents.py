@@ -243,7 +243,34 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        v = -float("inf")
+        a = Directions.STOP
+        for i in gameState.getLegalActions(0):
+            state = gameState.generateSuccessor(0, i)
+            value = self.expectimizer(state, 0, 1)
+            if value > v:
+                v = value
+                a = i
+        return a
+
+    def maximizer(self, state, depth):
+        if depth == self.depth or state.isWin() or state.isLose():
+            return self.evaluationFunction(state)
+        v = float("-inf")
+        for action in state.getLegalActions(0):
+            v = max(v, self.expectimizer(state.generateSuccessor(0, action), depth, 1))
+        return v
+
+    def expectimizer(self, state, depth, index):
+        if depth == self.depth or state.isWin() or state.isLose():
+            return self.evaluationFunction(state)
+        v = 0
+        for action in state.getLegalActions(index):
+            if index == state.getNumAgents() - 1:
+                v += (1 / len(state.getLegalActions(index))) * self.maximizer(state.generateSuccessor(index, action), depth + 1)
+            else:
+                v += (1 / len(state.getLegalActions(index))) * self.expectimizer(state.generateSuccessor(index, action), depth, index + 1)
+        return v
 
 def betterEvaluationFunction(currentGameState):
     """
@@ -253,7 +280,27 @@ def betterEvaluationFunction(currentGameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    score = scoreEvaluationFunction(currentGameState)
+    newFood = currentGameState.getFood()
+    newPos = currentGameState.getPacmanPosition()
+
+    if currentGameState.isWin():
+        return float("inf")
+    if currentGameState.isLose():
+        return float("-inf")
+
+    ghostDist = []
+    for i in range(1, currentGameState.getNumAgents()):
+        ghostDist.append(util.manhattanDistance(currentGameState.getGhostPosition(i), newPos))
+    if min(ghostDist) < 2:
+        return float("-inf")
+
+    foodDist = []
+    for food in list(newFood.asList()):
+        foodDist.append(util.manhattanDistance(food, newPos))
+
+    return score - 2 * min(foodDist) - max(foodDist) - 8 * currentGameState.getNumFood() + 1.5 * min(ghostDist) + max(
+        ghostDist)
 
 # Abbreviation
 better = betterEvaluationFunction
