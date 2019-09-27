@@ -273,14 +273,61 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         return v
 
 def betterEvaluationFunction(currentGameState):
-    """
-    Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
-    evaluation function (question 5).
 
-    DESCRIPTION: <write something here so we know what you did>
-    """
-    "*** YOUR CODE HERE ***"
+    if currentGameState.isWin():
+        return float("inf")
+    if currentGameState.isLose():
+        return float("-inf")
+
+    score = currentGameState.getScore()
+    newFood = currentGameState.getFood()
+    ghostPositions = currentGameState.getGhostPositions()
+    pos = currentGameState.getPacmanPosition()
+    capsuleList = currentGameState.getCapsules()
+
+
+    ghostStates = currentGameState.getGhostStates()
+    newScaredTimes = [ghostState.scaredTimer for ghostState in ghostStates]
+
+    retVal = 0
+    distance = []
+    distance.append(0)
+    gDistance = []
+
+    scaredGhostDistance = []
+    cDistance = []
+    cDistance.append(0)
+
+    for food in  newFood:
+        distance.append(manhattanDistance(pos, food))
+
+    for cap in  capsuleList:
+        cDistance.append(manhattanDistance(cap, food))
+
+    for state in ghostStates:
+        if state.scaredTimer != 0:
+            scaredGhostDistance.append(manhattanDistance(state.getPosition(), pos))
+        else:
+            gDistance.append(manhattanDistance(state.getPosition(), pos))
+
+    gDistance.extend(scaredGhostDistance)
+
+    # if ( min(gDistance) > 5):
+    #     return max(distance) + min(cDistance)
+
+    if ( min(gDistance) > 5):
+        return min (distance)
+
+    if ( min(gDistance) < 2   ):
+        return 10 * max(distance) - min(gDistance)
+
+    return min(distance) - min(gDistance) + currentGameState.getScore() + len(capsuleList) - \
+           len(gDistance) + len(scaredGhostDistance) + min(cDistance)
+
+
 
 
 # Abbreviation
 better = betterEvaluationFunction
+
+
