@@ -65,8 +65,8 @@ class ValueIterationAgent(ValueEstimationAgent):
         for i in range(self.iterations):
             vals = util.Counter()
             for s in self.mdp.getStates():
-                if not self.mdp.isTerminal(s):
-                    a = self.getAction(s)
+                a = self.getAction(s)
+                if a:
                     vals[s] = self.getQValue(s, a)
             self.values = vals
 
