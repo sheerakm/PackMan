@@ -61,9 +61,14 @@ class ValueIterationAgent(ValueEstimationAgent):
 
     def runValueIteration(self):
         # Write value iteration code here
+
         for i in range(self.iterations):
+            vals = util.Counter()
             for s in self.mdp.getStates():
-                self.values[s] = self.getAction(self, s)
+                if not self.mdp.isTerminal(s):
+                    a = self.getAction(s)
+                    vals[s] = self.getQValue(s, a)
+            self.values = vals
 
 
     def getValue(self, state):
@@ -85,7 +90,6 @@ class ValueIterationAgent(ValueEstimationAgent):
             s += prob * (self.mdp.getReward(state, action, nextState) + self.discount * self.getValue(nextState))
         return s
 
-
         util.raiseNotDefined()
 
     def computeActionFromValues(self, state):
@@ -102,10 +106,10 @@ class ValueIterationAgent(ValueEstimationAgent):
         actions = self.mdp.getPossibleActions(state)
         v = float('-inf')
         for action in actions:
-            q = self.computeQValueFromValues(state, action)
+            q = self.getQValue(state, action)
             if q > v:
                 v = q
-                best = v
+                best = action
         return best
 
 
