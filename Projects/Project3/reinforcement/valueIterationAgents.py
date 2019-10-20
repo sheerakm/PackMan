@@ -185,5 +185,51 @@ class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
         ValueIterationAgent.__init__(self, mdp, discount, iterations)
 
     def runValueIteration(self):
-        "*** YOUR CODE HERE ***"
+        pq = util.PriorityQueue()
+        predecessors = self.predecessors()
+
+        for state in self.mdp.getStates():
+          if not self.mdp.isTerminal(state):
+            values = []
+            for action in self.mdp.getPossibleActions(state):
+              q_value = self.computeQValueFromValues(state, action)
+              values.append(q_value)
+            diff = abs(max(values) - self.values[state])
+            pq.update(state, - diff)
+
+        for i in range(self.iterations):
+          if pq.isEmpty():
+            break
+          temp_state = pq.pop()
+          if not self.mdp.isTerminal(temp_state):
+            values = []
+            for action in self.mdp.getPossibleActions(temp_state):
+              q_value = self.computeQValueFromValues(temp_state, action)
+              values.append(q_value)
+            self.values[temp_state] = max(values)
+
+          for p in predecessors[temp_state]:
+            if not self.mdp.isTerminal(p):
+              values = []
+              for action in self.mdp.getPossibleActions(p):
+                q_value = self.computeQValueFromValues(p, action)
+                values.append(q_value)
+              diff = abs(max(values) - self.values[p])
+              if diff > self.theta:
+                pq.update(p, -diff)
+
+    def predecessors(self):
+        predecessors = {}
+        for state in self.mdp.getStates():
+            if not self.mdp.isTerminal(state):
+                for action in self.mdp.getPossibleActions(state):
+                    for nextState, prob in self.mdp.getTransitionStatesAndProbs(state, action):
+                        if nextState in predecessors:
+                            predecessors[nextState].add(state)
+                        else:
+                            predecessors[nextState] = {state}
+
+        return predecessors
+
+
 
