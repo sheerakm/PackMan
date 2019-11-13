@@ -52,7 +52,7 @@ def getObservationProbability(noisyDistance, trueDistance):
     global observationDistributions
     if noisyDistance not in observationDistributions:
         distribution = util.Counter()
-        for error , prob in zip(SONAR_NOISE_VALUES, SONAR_NOISE_PROBS):
+        for error, prob in zip(SONAR_NOISE_VALUES, SONAR_NOISE_PROBS):
             distribution[max(1, noisyDistance - error)] += prob
         observationDistributions[noisyDistance] = distribution
     return observationDistributions[noisyDistance][trueDistance]
