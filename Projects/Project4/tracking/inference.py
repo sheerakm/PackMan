@@ -306,7 +306,9 @@ class ExactInference(InferenceModule):
         position is known.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        for position in self.allPositions:
+            self.beliefs[position] = self.beliefs[position] * self.getObservationProb(observation, gameState.getPacmanPosition(), position, self.getJailPosition())
+        #raiseNotDefined()
 
         self.beliefs.normalize()
 
@@ -320,7 +322,14 @@ class ExactInference(InferenceModule):
         current position is known.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        list = DiscreteDistribution()
+        for position in self.allPositions:
+            newPosDist = self.getPositionDistribution(gameState, position)
+            for pos in self.allPositions:
+                list[pos] += self.beliefs[position]*newPosDist[pos]
+        self.beliefs = list
+        #self.beliefs.normalize()
+        #raiseNotDefined()
 
     def getBeliefDistribution(self):
         return self.beliefs
@@ -362,6 +371,8 @@ class ParticleFilter(InferenceModule):
         the DiscreteDistribution may be useful.
         """
         "*** YOUR CODE HERE ***"
+
+
         raiseNotDefined()
 
     def elapseTime(self, gameState):
