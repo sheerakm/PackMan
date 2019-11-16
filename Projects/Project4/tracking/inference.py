@@ -16,6 +16,7 @@ import itertools
 import random
 import busters
 import game
+import util
 
 from util import manhattanDistance, raiseNotDefined
 
@@ -356,6 +357,10 @@ class ParticleFilter(InferenceModule):
         for num in range(self.numParticles):
             self.particles += [self.legalPositions[num % length]]
         #raiseNotDefined()
+        self.beliefs = DiscreteDistribution()
+        for position in self.legalPositions:
+            self.beliefs[position] = self.particles.count(position) / self.numParticles
+        self.beliefs.normalize()
 
     def observeUpdate(self, observation, gameState):
         """
@@ -377,6 +382,7 @@ class ParticleFilter(InferenceModule):
         if dist.total() == 0:
             self.initializeUniformly(gameState)
         else:
+            # self.particles = []
             dist.normalize()
             self.particles = [dist.sample() for _ in range(self.numParticles)]
 
@@ -388,7 +394,12 @@ class ParticleFilter(InferenceModule):
         gameState.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        temp = DiscreteDistribution()
+        for oldPos in self.particles:
+            newPosDist = self.getPositionDistribution(gameState, oldPos)
+            temp[oldPos] = newPosDist.sample()
+        self.beliefs = temp
+        #raiseNotDefined()
 
     def getBeliefDistribution(self):
         """
@@ -399,15 +410,17 @@ class ParticleFilter(InferenceModule):
         This function should return a normalized distribution.
         """
         "*** YOUR CODE HERE ***"
-        dist = DiscreteDistribution()
+        '''dist = DiscreteDistribution()
         for particle in self.particles:
-            if dist[particle] is None:
+            ''''''if dist[particle] is None:
                 dist[particle] = 1
-            else:
-                dist[particle] += 1
+            else:''''''
+            dist[particle] += 1
         dist.normalize()
-        return dist
+        return dist'''
         #raiseNotDefined()
+
+        return self.beliefs
 
 
 class JointParticleFilter(ParticleFilter):
@@ -482,7 +495,19 @@ class JointParticleFilter(ParticleFilter):
 
             # now loop through and update each entry in newParticle...
             "*** YOUR CODE HERE ***"
-            raiseNotDefined()
+            newParticles = []
+            for oldParticle in self.particles:
+                newParticle = list(oldParticle)  # A list of ghost positions
+
+                # now loop through and update each entry in newParticle...
+                "*** YOUR CODE HERE ***"
+                for i in range(self.numGhosts):
+                    newPosDist = self.getPositionDistribution(gameState, oldParticle, i, self.ghostAgents[i])
+                    newParticle[i] = newPosDist.sample()
+
+                newParticles.append(tuple(newParticle))
+            self.particles = newParticles
+            #raiseNotDefined()
 
             """*** END YOUR CODE HERE ***"""
             newParticles.append(tuple(newParticle))
