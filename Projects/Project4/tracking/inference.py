@@ -396,8 +396,13 @@ class ParticleFilter(InferenceModule):
         Sample each particle's next state based on its current state and the
         gameState.
         """
-        "*** YOUR CODE HERE ***"
-
+        particles = []
+        for position in self.legalPositions:
+            newPosDist = self.getPositionDistribution(gameState, position)
+            for oldPosition in self.particles:
+                if oldPosition == position:
+                    particles.append(newPosDist.sample())
+        self.particles = particles
 
     def getBeliefDistribution(self):
         """
@@ -425,6 +430,7 @@ class JointParticleFilter(ParticleFilter):
 
     def __init__(self, numParticles=600):
         self.setNumParticles(numParticles)
+
 
     def initialize(self, gameState, legalPositions):
         """
@@ -478,21 +484,38 @@ class JointParticleFilter(ParticleFilter):
         the DiscreteDistribution may be useful.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        dist = DiscreteDistribution()
+        pacmanPosition = gameState.getPacmanPosition()
+        for p in self.particles:
+            prob = 1
+            for i in range(self.numGhosts):
+                prob = prob * self.getObservationProb(observation[i], pacmanPosition, p[i], self.getJailPosition(i))
+            dist[p] += prob
+        dist.normalize()
+        if dist.total() != 0:
+            self.particles = [dist.sample() for _ in range(self.numParticles)]
+        else:
+            self.initializeUniformly(gameState)
+
+
 
     def elapseTime(self, gameState):
         """
         Sample each particle's next state based on its current state and the
         gameState.
         """
-        newParticles = []
-        for oldParticle in self.particles:
-            newParticle = list(oldParticle)  # A list of ghost positions
 
-            # now loop through and update each entry in newParticle...
-            "*** YOUR CODE HERE ***"
-            raiseNotDefined()
-            """*** END YOUR CODE HERE ***"""
+        newParticles = []
+        temp = {}
+        for oldParticle in self.particles:
+            newParticle = list(oldParticle)
+
+            for i in range(self.numGhosts):
+                x = (oldParticle, i)
+                if x not in temp:
+                    temp[x] = self.getPositionDistribution(gameState, newParticle, i, self.ghostAgents[i])
+                newParticle[i] = temp[x].sample()
+
             newParticles.append(tuple(newParticle))
         self.particles = newParticles
 
