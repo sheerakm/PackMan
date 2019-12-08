@@ -112,22 +112,16 @@ class RegressionModel(object):
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
-        while True:
+        while nn.as_scalar(self.get_loss(nn.Constant(dataset.x), nn.Constant(dataset.y))) > 0.01:
 
             for x, y in dataset.iterate_once(self.batch_size):
-                loss = self.get_loss(x, y)
-                grad = nn.gradients(loss, self.list)
-                loss = self.get_loss(x, y)
-
-                self.w1.update(grad[0], -0.005)
-                self.w2.update(grad[1], -0.005)
-                self.b1.update(grad[3], -0.005)
-                self.b2.update(grad[4], -0.005)
-                self.w3.update(grad[2], -0.005)
-                self.b3.update(grad[5], -0.005)
-
-            if nn.as_scalar(self.get_loss(nn.Constant(dataset.x), nn.Constant(dataset.y))) < 0.02:
-                return
+                grad = nn.gradients(self.get_loss(x, y), self.list)
+                self.w1.update(grad[0], -0.01)
+                self.w2.update(grad[1], -0.01)
+                self.w3.update(grad[2], -0.01)
+                self.b1.update(grad[3], -0.01)
+                self.b2.update(grad[4], -0.01)
+                self.b3.update(grad[5], -0.01)
 
 class DigitClassificationModel(object):
     """
