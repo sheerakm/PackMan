@@ -66,6 +66,14 @@ class RegressionModel(object):
     def __init__(self):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
+        self.batch_size = 1
+        self.w1 = nn.Parameter(1, 100)
+        self.b1 = nn.Parameter(1, 100)
+        self.w2 = nn.Parameter(100, 50)
+        self.b2 = nn.Parameter(1, 50)
+        self.w3 = nn.Parameter(50, 1)
+        self.b3 = nn.Parameter(1, 1)
+        self.list = [self.w1, self.w2, self.w3, self.b1, self.b2, self.b3]
 
     def run(self, x):
         """
@@ -77,7 +85,14 @@ class RegressionModel(object):
             A node with shape (batch_size x 1) containing predicted y-values
         """
         "*** YOUR CODE HERE ***"
-        return nn.DotProduct()
+        xw1 = nn.Linear(x, self.w1)
+        biased1 = nn.AddBias(xw1, self.b1)
+        relu1 = nn.ReLU(biased1)
+        xw2 = nn.Linear(relu1, self.w2)
+        biased2 = nn.AddBias(xw2, self.b2)
+        relu2 = nn.ReLU(biased2)
+        xw2 = nn.Linear(relu2, self.w3)
+        return nn.AddBias(xw2, self.b3)
 
     def get_loss(self, x, y):
         """
@@ -90,12 +105,29 @@ class RegressionModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
+        return nn.SquareLoss(self.run(x), y)
 
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+        while True:
+
+            for x, y in dataset.iterate_once(self.batch_size):
+                loss = self.get_loss(x, y)
+                grad = nn.gradients(loss, self.list)
+                loss = self.get_loss(x, y)
+
+                self.w1.update(grad[0], -0.005)
+                self.w2.update(grad[1], -0.005)
+                self.b1.update(grad[3], -0.005)
+                self.b2.update(grad[4], -0.005)
+                self.w3.update(grad[2], -0.005)
+                self.b3.update(grad[5], -0.005)
+
+            if nn.as_scalar(self.get_loss(nn.Constant(dataset.x), nn.Constant(dataset.y))) < 0.02:
+                return
 
 class DigitClassificationModel(object):
     """
