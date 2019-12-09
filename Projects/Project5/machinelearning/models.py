@@ -84,12 +84,8 @@ class RegressionModel(object):
             A node with shape (batch_size x 1) containing predicted y-values
         """
         "*** YOUR CODE HERE ***"
-        xw1 = nn.Linear(x, self.w1)
-        biased1 = nn.AddBias(xw1, self.b1)
-        relu1 = nn.ReLU(biased1)
-        xw2 = nn.Linear(relu1, self.w2)
-        biased2 = nn.AddBias(xw2, self.b2)
-        relu2 = nn.ReLU(biased2)
+        relu1 = nn.ReLU(nn.AddBias(nn.Linear(x, self.w1), self.b1))
+        relu2 = nn.ReLU(nn.AddBias(nn.Linear(relu1, self.w2), self.b2))
         xw2 = nn.Linear(relu2, self.w3)
         return nn.AddBias(xw2, self.b3)
 
@@ -198,20 +194,11 @@ class DigitClassificationModel(object):
                 self.b2.update(grad[3], -0.01)
 
 class LanguageIDModel(object):
-    """
-    A model for language identification at a single-word granularity.
-
-    (See RegressionModel for more information about the APIs of different
-    methods here. We recommend that you implement the RegressionModel before
-    working on this part of the project.)
-    """
     def __init__(self):
-        # Our dataset contains words from five different languages, and the
-        # combined alphabets of the five languages contain a total of 47 unique
-        # characters.
-        # You can refer to self.num_chars or len(self.languages) in your code
         self.num_chars = 47
         self.languages = ["English", "Spanish", "Finnish", "Dutch", "Polish"]
+        self.batch_size = 100
+        self.hiddenLayerSize = 200
 
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
@@ -238,13 +225,13 @@ class LanguageIDModel(object):
         index 7 reflects the fact that "cat" is the last word in the batch, and
         the index 0 reflects the fact that the letter "a" is the inital (0th)
         letter of our combined alphabet for this task.
+=======
+        self.w_h = nn.Parameter(self.hiddenLayerSize, self.hiddenLayerSize)
+        self.w_f = nn.Parameter(self.hiddenLayerSize, len(self.languages))
+        self.w = nn.Parameter(self.num_chars, self.hiddenLayerSize)
 
-        Your model should use a Recurrent Neural Network to summarize the list
-        `xs` into a single node of shape (batch_size x hidden_size), for your
-        choice of hidden_size. It should then calculate a node of shape
-        (batch_size x 5) containing scores, where higher scores correspond to
-        greater probability of the word originating from a particular language.
 
+<<<<<<< HEAD
         Inputs:
             xs: a list with L elements (one per character), where each element
                 is a node with shape (batch_size x self.num_chars)
@@ -289,3 +276,21 @@ class LanguageIDModel(object):
                 self.w.update(grad[0], -0.005)
                 self.wh.update(grad[1], -0.005)
                 self.wf.update(grad[2], -0.005)
+    def run(self, xs):
+        z = nn.Linear(xs[0], self.w)
+        y = xs[1:]
+        for x in y:
+            z = nn.ReLU(nn.Add(nn.Linear(x, self.w), nn.Linear(z, self.wh)))
+        return nn.Linear(z, self.wf)
+
+    def get_loss(self, xs, y):
+        return nn.SoftmaxLoss(self.run(xs), y)
+
+    def train(self, dataset):
+        while dataset.get_validation_accuracy() < 0.88:
+            for x in dataset.iterate_once(self.batch_size):
+                grad = nn.gradients(self.get_loss(x[0], x[1]), [self.w, self.wh, self.wf])
+                self.w.update(grad[0], -0.03)
+                self.wh.update(grad[1], -0.03)
+                self.wf.update(grad[2], -0.03)
+
