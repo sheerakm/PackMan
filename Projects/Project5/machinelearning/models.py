@@ -85,12 +85,8 @@ class RegressionModel(object):
             A node with shape (batch_size x 1) containing predicted y-values
         """
         "*** YOUR CODE HERE ***"
-        xw1 = nn.Linear(x, self.w1)
-        biased1 = nn.AddBias(xw1, self.b1)
-        relu1 = nn.ReLU(biased1)
-        xw2 = nn.Linear(relu1, self.w2)
-        biased2 = nn.AddBias(xw2, self.b2)
-        relu2 = nn.ReLU(biased2)
+        relu1 = nn.ReLU(nn.AddBias(nn.Linear(x, self.w1), self.b1))
+        relu2 = nn.ReLU(nn.AddBias(nn.Linear(relu1, self.w2), self.b2))
         xw2 = nn.Linear(relu2, self.w3)
         return nn.AddBias(xw2, self.b3)
 
@@ -141,11 +137,11 @@ class DigitClassificationModel(object):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
         self.batch_size = 1
-        self.w1 = nn.Parameter(784, 20)
-        self.b1 = nn.Parameter(1, 20)
-        self.w2 = nn.Parameter(20, 10)
-        self.b2 = nn.Parameter(1, 10)
-        self.w3 = nn.Parameter(10, 10)
+        self.w1 = nn.Parameter(784, 4)
+        self.b1 = nn.Parameter(1, 4)
+        self.w2 = nn.Parameter(4, 50)
+        self.b2 = nn.Parameter(1, 50)
+        self.w3 = nn.Parameter(50, 10)
         self.b3 = nn.Parameter(1, 10)
         self.list = [self.w1, self.w2, self.w3, self.b1, self.b2, self.b3]
 
@@ -194,7 +190,7 @@ class DigitClassificationModel(object):
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
-        while nn.as_scalar(self.get_loss(nn.Constant(dataset.x), nn.Constant(dataset.y))) > 0.02:
+        while dataset.get_validation_accuracy() < 0.97:
 
             for x, y in dataset.iterate_once(self.batch_size):
                 grad = nn.gradients(self.get_loss(x, y), self.list)
@@ -206,73 +202,32 @@ class DigitClassificationModel(object):
                 self.b3.update(grad[5], -0.01)
 
 class LanguageIDModel(object):
-    """
-    A model for language identification at a single-word granularity.
-
-    (See RegressionModel for more information about the APIs of different
-    methods here. We recommend that you implement the RegressionModel before
-    working on this part of the project.)
-    """
     def __init__(self):
-        # Our dataset contains words from five different languages, and the
-        # combined alphabets of the five languages contain a total of 47 unique
-        # characters.
-        # You can refer to self.num_chars or len(self.languages) in your code
         self.num_chars = 47
         self.languages = ["English", "Spanish", "Finnish", "Dutch", "Polish"]
+        self.batch_size = 100
+        self.hiddenLayerSize = 200
 
-        # Initialize your model parameters here
-        "*** YOUR CODE HERE ***"
+        self.w_h = nn.Parameter(self.hiddenLayerSize, self.hiddenLayerSize)
+        self.w_f = nn.Parameter(self.hiddenLayerSize, len(self.languages))
+        self.w = nn.Parameter(self.num_chars, self.hiddenLayerSize)
+
 
     def run(self, xs):
-        """
-        Runs the model for a batch of examples.
-
-        Although words have different lengths, our data processing guarantees
-        that within a single batch, all words will be of the same length (L).
-
-        Here `xs` will be a list of length L. Each element of `xs` will be a
-        node with shape (batch_size x self.num_chars), where every row in the
-        array is a one-hot vector encoding of a character. For example, if we
-        have a batch of 8 three-letter words where the last word is "cat", then
-        xs[1] will be a node that contains a 1 at position (7, 0). Here the
-        index 7 reflects the fact that "cat" is the last word in the batch, and
-        the index 0 reflects the fact that the letter "a" is the inital (0th)
-        letter of our combined alphabet for this task.
-
-        Your model should use a Recurrent Neural Network to summarize the list
-        `xs` into a single node of shape (batch_size x hidden_size), for your
-        choice of hidden_size. It should then calculate a node of shape
-        (batch_size x 5) containing scores, where higher scores correspond to
-        greater probability of the word originating from a particular language.
-
-        Inputs:
-            xs: a list with L elements (one per character), where each element
-                is a node with shape (batch_size x self.num_chars)
-        Returns:
-            A node with shape (batch_size x 5) containing predicted scores
-                (also called logits)
-        """
-        "*** YOUR CODE HERE ***"
+        z = nn.Linear(xs[0], self.w)
+        y = xs[1:]
+        for x in y:
+            z = nn.ReLU(nn.Add(nn.Linear(x, self.w), nn.Linear(z, self.w_h)))
+        return nn.Linear(z, self.w_f)
 
     def get_loss(self, xs, y):
-        """
-        Computes the loss for a batch of examples.
-
-        The correct labels `y` are represented as a node with shape
-        (batch_size x 5). Each row is a one-hot vector encoding the correct
-        language.
-
-        Inputs:
-            xs: a list with L elements (one per character), where each element
-                is a node with shape (batch_size x self.num_chars)
-            y: a node with shape (batch_size x 5)
-        Returns: a loss node
-        """
-        "*** YOUR CODE HERE ***"
+        return nn.SoftmaxLoss(self.run(xs), y)
 
     def train(self, dataset):
-        """
-        Trains the model.
-        """
-        "*** YOUR CODE HERE ***"
+        while dataset.get_validation_accuracy() < 0.88:
+            for x in dataset.iterate_once(self.batch_size):
+                grad = nn.gradients(self.get_loss(x[0], x[1]), [self.w, self.w_h, self.w_f])
+                self.w.update(grad[0], -0.03)
+                self.w_h.update(grad[1], -0.03)
+                self.w_f.update(grad[2], -0.03)
+
